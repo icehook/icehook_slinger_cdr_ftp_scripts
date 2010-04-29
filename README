@@ -1,0 +1,1 @@
+This is a simple Bash script that you can schedule in cron to stream CDR's to Slinger from your switches, or CDR aggregation point.
