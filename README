@@ -1,1 +1,1 @@
-This is a simple Bash script that you can schedule in cron to stream CDR's to Slinger from your switches, or CDR aggregation point.
+Various scripts that one can schedule to copy Call Detail Records (CDRs) to IceHook's Slinger or any other CDR aggregation point.
