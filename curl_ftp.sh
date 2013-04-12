@@ -65,7 +65,7 @@ fi
 # push each cdrfile with the given extension - move it to a "backup" after we have pushed it
 # connecting for each ftp session is not fast - but its the best way we can garauntee we 
 # dont move any unpushed cdrfiles
-for cdr_file in `find $path -type f -name "*$ext"`
+for cdr_file in `find $path -type f -regextype sed -regex "$ext"`
 do
 debug "pushing $cdr_file to $FTPSERVER"
 
