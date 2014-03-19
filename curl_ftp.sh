@@ -90,7 +90,7 @@ debug "looking for files ending in $ext in $path"
 # push each cdrfile with the given extension - move it to a "backup" after we have pushed it
 # connecting for each ftp session is not fast - but its the best way we can garauntee we
 # dont move any unpushed cdrfiles
-for cdr_file in `find "$path" -type f -regextype sed -regex "^.*$ext$"`
+for cdr_file in `find "$path" -regextype grep -type f -regex "^.*$ext$"`
 do
   original_cdr_file="$cdr_file"
   filename=$(basename "$cdr_file")
