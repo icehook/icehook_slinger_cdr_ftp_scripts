@@ -97,14 +97,14 @@ for cdr_file in `find "$path" -regextype grep -type f -regex "^.*$ext$"`
 do
   original_cdr_file="$cdr_file"
   filename=$(basename "$cdr_file")
-  cp "$cdr_file" "$TMP_DIR"
+  cp -f "$cdr_file" "$TMP_DIR"
   cdr_file="$TMP_DIR/$filename"
 
   if [[ $gunzip ]] ; then
     output_file=${cdr_file%.gz}
 
     debug "gunzipping $cdr_file with output going to $output_file"
-    echo "$GUNZIP -c $cdr_file"
+    echo "$GUNZIP $cdr_file"
 
     $GUNZIP "$cdr_file"
 
