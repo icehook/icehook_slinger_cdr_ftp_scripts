@@ -4,13 +4,15 @@
 DEBUG=true
 
 # dont modify this unless parameters change
-USAGE="Usage: $0 -k /absolute/path/preprocessor.awk -u user -p password -a /absolute/path/cdrs -d /absolute/path/processed/cdrs -e extension(ex: csv)"
+USAGE="Usage: $0 -g(to gunzip) -k /absolute/path/preprocessor.awk -u user -p password -a /absolute/path/cdrs -d /absolute/path/processed/cdrs -e extension(ex: csv)"
 
 FTPSERVER="ftp://ftp1.slinger.icehook.com"
 
 CURL="/usr/bin/curl"
 
 AWK="/usr/bin/awk"
+
+GUNZIP="/bin/gunzip"
 
 TMP_DIR="/tmp/curl_ftp"
 
@@ -23,7 +25,7 @@ function debug() {
 }
 
 # process the command line args
-while getopts "k:u:p:a:e:d:" options; do
+while getopts "k:u:p:a:e:d:g" options; do
   case $options in
     k ) preprocessor=$OPTARG;;
     u ) user=$OPTARG;;
@@ -31,6 +33,7 @@ while getopts "k:u:p:a:e:d:" options; do
     a ) path=$OPTARG;;
     d ) processed_path=$OPTARG;;
     e ) ext=$OPTARG;;
+    g ) gunzip=true;;
     h ) echo $USAGE;;
     \? ) echo $USAGE
          exit 1;;
@@ -94,9 +97,31 @@ for cdr_file in `find "$path" -regextype grep -type f -regex "^.*$ext$"`
 do
   original_cdr_file="$cdr_file"
   filename=$(basename "$cdr_file")
-  base_filename="${filename%$ext}"
+  cp "$cdr_file" "$TMP_DIR"
+  cdr_file="$TMP_DIR/$filename"
+
+  if [[ $gunzip ]] ; then
+    output_file=${cdr_file%.gz}
+
+    debug "gunzipping $cdr_file with output going to $output_file"
+    echo "$GUNZIP -c $cdr_file"
+
+    $GUNZIP "$cdr_file"
+
+    if [ $? = "0" ] ; then
+      debug "successful gunzipping of $cdr_file"
+      cdr_file=$output_file
+      ext=${ext%.gz}
+    else
+      echo "failed gunzipping of $cdr_file" >> slinger_ftp.err
+      echo "failed gunzipping of $cdr_file"
+      exit 1
+    fi
+  fi
 
   if [ $preprocessor ] ; then
+    filename=$(basename "$cdr_file")
+    base_filename=${filename%ext}
     output_file="$TMP_DIR/$base_filename-$PROCESSED_STRING$ext"
 
     debug "preprocessing $cdr_file with output going to $output_file"
@@ -106,6 +131,8 @@ do
 
     if [ $? = "0" ] ; then
       debug "successful preprocessing of $cdr_file"
+      debug "deleting $cdr_file"
+      rm "$cdr_file"
       cdr_file=$output_file
     else
       echo "failed preprocessing of $cdr_file" >> slinger_ftp.err
@@ -128,6 +155,8 @@ do
     echo "failed uploading $cdr_file" >> slinger_ftp.err
     debug "failed uploading $cdr_file"
   fi
+
+  echo ""
 done
 
 
